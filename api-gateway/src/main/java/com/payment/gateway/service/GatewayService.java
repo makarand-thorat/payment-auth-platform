@@ -6,8 +6,10 @@ import org.springframework.stereotype.Service;
 
 import com.payment.gateway.client.AccountServiceClient;
 import com.payment.gateway.dto.AccountResponse;
+import com.payment.gateway.dto.TransactionEvent;
 import com.payment.gateway.dto.TransactionRequest;
 import com.payment.gateway.dto.TransactionResponse;
+import com.payment.gateway.kafka.TransactionProducer;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GatewayService {
 	
 	private final AccountServiceClient accountServiceClient;
+	private final TransactionProducer transactionProducer;
 	
 	public TransactionResponse authorize(TransactionRequest request) {
 		String transactionId = UUID.randomUUID().toString();
@@ -51,6 +54,19 @@ public class GatewayService {
         }
         
         accountServiceClient.debitAccount(request.getCardNumber(), request.getAmountInCents());
+        
+        TransactionEvent event = new TransactionEvent(
+                transactionId,
+                request.getCardNumber(),
+                request.getAmountInCents(),
+                request.getMerchantId(),
+                request.getMerchantCategory(),
+                request.getTimestamp(),
+                account.getStatus(),
+                account.getBalanceInCents() - request.getAmountInCents()
+        );
+        
+        transactionProducer.publishTransaction(event);
 
         log.info("Transaction {} approved and account debited", transactionId);
         return new TransactionResponse(
