@@ -11,10 +11,7 @@ public class ResultConsumerTest {
 
     @KafkaListener(
             topics = "transaction.result",
-            groupId = "result-test-consumer",
-            properties = {
-                            "spring.json.value.default.type=com.payment.authorization.dto.TransactionEvent"
-                        }
+            groupId = "result-test-consumer"
     )
     public void consume(AuthorizationResult result) {
         log.info("TEST CONSUMER - Result received: transactionId={} decision={} reason={}",

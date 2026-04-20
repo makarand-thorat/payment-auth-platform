@@ -18,10 +18,7 @@ public class TransactionConsumer {
 	
 	@KafkaListener(
             topics = "transaction.submitted",
-            groupId = "authorization-service",
-            properties = {
-                            "spring.json.value.default.type=com.payment.authorization.dto.TransactionEvent"
-                        }
+            groupId = "authorization-service"
     )
 	  public void consume(TransactionEvent event) {
         log.info("Received transaction event: {}", event.getTransactionId());
