@@ -6,19 +6,19 @@ Simulates card transaction processing with fraud detection, rules engine, and di
 ## Architecture
 ```
 Client
-│
-▼
+  |
+  v
 API Gateway (port 8080)
-│
-├──► Account Service (port 8081) ──► PostgreSQL
-│
-└──► Kafka (transaction.submitted topic)
-│
-▼
-Authorization Service (port 8082)
-│
-▼
-Kafka (transaction.result topic)
+  |
+  |-----> Account Service (port 8081) -----> PostgreSQL
+  |
+  └-----> Kafka (transaction.submitted)
+                |
+                v
+        Authorization Service (port 8082)
+                |
+                v
+        Kafka (transaction.result)
 ```
 
 ## Services
