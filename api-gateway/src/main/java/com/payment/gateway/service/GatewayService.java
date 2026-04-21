@@ -22,60 +22,62 @@ public class GatewayService {
 	private final AccountServiceClient accountServiceClient;
 	private final TransactionProducer transactionProducer;
 	
-	public TransactionResponse authorize(TransactionRequest request) {
-		String transactionId = UUID.randomUUID().toString();
-		log.info("Processing transaction {} for card {}",
-				transactionId,maskCard(request.getCardNumber()));
-		
-		AccountResponse account = accountServiceClient.getAccount(request.getCardNumber());
-		
-		if("BLOCKED".equals(account.getStatus())) {
-			log.warn("Transaction {} declined - account blocked", transactionId);
-			
-			return new TransactionResponse(
-                    transactionId,
-                    request.getCardNumber(),
-                    request.getAmountInCents(),
-                    "DECLINED",
-                    "Account is blocked"
-					
-					);
-		}
-		
-        if (account.getBalanceInCents() < request.getAmountInCents()) {
-            log.warn("Transaction {} declined - insufficient funds", transactionId);
-            return new TransactionResponse(
-                    transactionId,
-                    request.getCardNumber(),
-                    request.getAmountInCents(),
-                    "DECLINED",
-                    "Insufficient funds"
-            );
-        }
-        
-        accountServiceClient.debitAccount(request.getCardNumber(), request.getAmountInCents());
-        
-        TransactionEvent event = new TransactionEvent(
-                transactionId,
-                request.getCardNumber(),
-                request.getAmountInCents(),
-                request.getMerchantId(),
-                request.getMerchantCategory(),
-                request.getTimestamp(),
-                account.getStatus(),
-                account.getBalanceInCents() - request.getAmountInCents()
-        );
-        
-        transactionProducer.publishTransaction(event);
+	public TransactionResponse authorize(TransactionRequest request, String correlationId) {
+	    String transactionId = UUID.randomUUID().toString();
+	    log.info("Processing transaction {} correlationId {} for card {}",
+	            transactionId, correlationId, maskCard(request.getCardNumber()));
 
-        log.info("Transaction {} approved and account debited", transactionId);
-        return new TransactionResponse(
-                transactionId,
-                request.getCardNumber(),
-                request.getAmountInCents(),
-                "APPROVED",
-                "Transaction approved"
-        );
+	    AccountResponse account = accountServiceClient.getAccount(request.getCardNumber());
+
+	    if ("BLOCKED".equals(account.getStatus())) {
+	        log.warn("Transaction {} correlationId {} declined - account blocked",
+	                transactionId, correlationId);
+	        return new TransactionResponse(
+	                transactionId,
+	                request.getCardNumber(),
+	                request.getAmountInCents(),
+	                "DECLINED",
+	                "Account is blocked"
+	        );
+	    }
+
+	    if (account.getBalanceInCents() < request.getAmountInCents()) {
+	        log.warn("Transaction {} correlationId {} declined - insufficient funds",
+	                transactionId, correlationId);
+	        return new TransactionResponse(
+	                transactionId,
+	                request.getCardNumber(),
+	                request.getAmountInCents(),
+	                "DECLINED",
+	                "Insufficient funds"
+	        );
+	    }
+
+	    accountServiceClient.debitAccount(request.getCardNumber(), request.getAmountInCents());
+
+	    TransactionEvent event = new TransactionEvent(
+	            transactionId,
+	            request.getCardNumber(),
+	            request.getAmountInCents(),
+	            request.getMerchantId(),
+	            request.getMerchantCategory(),
+	            request.getTimestamp(),
+	            account.getStatus(),
+	            account.getBalanceInCents() - request.getAmountInCents()
+	    );
+
+	    transactionProducer.publishTransaction(event);
+
+	    log.info("Transaction {} correlationId {} approved and published to Kafka",
+	            transactionId, correlationId);
+
+	    return new TransactionResponse(
+	            transactionId,
+	            request.getCardNumber(),
+	            request.getAmountInCents(),
+	            "APPROVED",
+	            "Transaction approved"
+	    );
 	}
 	
 	private String maskCard(String cardNumber) {
