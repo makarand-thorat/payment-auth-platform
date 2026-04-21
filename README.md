@@ -170,7 +170,6 @@ payment-auth-platform/
 ## Architecture Decisions
 
 See the [docs/](docs/) folder for Architecture Decision Records (ADRs) explaining key design choices.
-
 ## Upcoming Features (Days 8–30)
 
 - Rules Engine with configurable business rules
@@ -180,5 +179,5 @@ See the [docs/](docs/) folder for Architecture Decision Records (ADRs) explainin
 - Kubernetes deployment
 - GitHub Actions CI/CD pipeline
 - Gatling load testing
-- Prometheus + Grafana monitoring
+- Prometheus and Grafana monitoring
 - Distributed tracing with Jaeger
