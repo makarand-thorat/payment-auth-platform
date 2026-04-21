@@ -136,36 +136,34 @@ Authorization Service publishes AuthorizationResult to Kafka (transaction.result
 
 
 ## Project Structure
+```
 payment-auth-platform/
-├── api-gateway/                  # Spring Boot — entry point
+├── api-gateway/
 │   └── src/main/java/com/payment/gateway/
-│       ├── controller/           # REST endpoints
-│       ├── service/              # Business logic
-│       ├── client/               # Account Service HTTP client
-│       ├── kafka/                # Kafka producer
-│       ├── dto/                  # Data transfer objects
-│       └── config/               # App configuration
-│
-├── account-service/              # Spring Boot — account management
+│       ├── controller/
+│       ├── service/
+│       ├── client/
+│       ├── kafka/
+│       ├── dto/
+│       └── config/
+├── account-service/
 │   └── src/main/java/com/payment/account/
-│       ├── controller/           # REST endpoints
-│       ├── service/              # Business logic
-│       ├── repository/           # JPA repositories
-│       ├── model/                # JPA entities
-│       ├── dto/                  # Data transfer objects
-│       └── exception/            # Global exception handler
-│
-├── authorization-service/        # Spring Boot — authorization decisions
+│       ├── controller/
+│       ├── service/
+│       ├── repository/
+│       ├── model/
+│       ├── dto/
+│       └── exception/
+├── authorization-service/
 │   └── src/main/java/com/payment/authorization/
-│       ├── kafka/                # Kafka consumer and producer
-│       ├── service/              # Authorization logic
-│       ├── dto/                  # Data transfer objects
-│       └── config/               # Kafka configuration
-│
-├── docs/                         # Architecture Decision Records
+│       ├── kafka/
+│       ├── service/
+│       ├── dto/
+│       └── config/
+├── docs/
 │   └── ADR-001-why-kafka.md
-│
-└── docker-compose.yml            # Infrastructure setup
+└── docker-compose.yml
+```
 
 ## Architecture Decisions
 
