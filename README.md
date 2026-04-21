@@ -4,6 +4,7 @@ A real-time payment authorization platform built with Java, Spring Boot, Kafka, 
 Simulates card transaction processing with fraud detection, rules engine, and distributed microservices architecture.
 
 ## Architecture
+```
 Client
 │
 ▼
@@ -18,6 +19,7 @@ Authorization Service (port 8082)
 │
 ▼
 Kafka (transaction.result topic)
+```
 
 ## Services
 
