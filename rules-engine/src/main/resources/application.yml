@@ -23,3 +23,12 @@ spring:
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: true
         spring.json.type.mapping: "tx_token:com.payment.rules.dto.TransactionEvent, rule_token:com.payment.rules.dto.RulesResult"
+
+rules:
+  max-single-transaction-cents: 500000
+  blocked-categories: GAMBLING,ADULT,CRYPTO
+  velocity-window-minutes: 10
+  velocity-max-different-merchants: 3
+
+account-service:
+  url: http://localhost:8081
