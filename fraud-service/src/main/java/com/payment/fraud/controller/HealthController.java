@@ -1,4 +1,4 @@
-package com.payment.rules.contoller;
+package com.payment.fraud.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +12,7 @@ public class HealthController {
     public ResponseEntity<Map<String, String>> health() {
         return ResponseEntity.ok(Map.of(
                 "status", "UP",
-                "service", "rules-engine"
+                "service", "fraud-service"
         ));
     }
 }
