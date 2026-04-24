@@ -54,6 +54,19 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+  cassandra:
+    image: cassandra:4.1
+    container_name: payment-cassandra
+    ports:
+        - "9042:9042"
+    environment:
+        CASSANDRA_CLUSTER_NAME: payment-cluster
+        CASSANDRA_DC: datacenter1
+    healthcheck:
+        test: ["CMD", "cqlsh", "-e", "describe keyspaces"]
+        interval: 10s
+        timeout: 10s
+        retries: 10
 
 
 volumes:

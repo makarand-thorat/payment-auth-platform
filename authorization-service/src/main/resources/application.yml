@@ -23,3 +23,10 @@ spring:
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: true
         spring.json.type.mapping: "tx_token:com.payment.authorization.dto.TransactionEvent, auth_token:com.payment.authorization.dto.AuthorizationResult"
+
+  cassandra:
+    keyspace-name: payment
+    contact-points: localhost
+    port: 9042
+    local-datacenter: datacenter1
+    schema-action: none
