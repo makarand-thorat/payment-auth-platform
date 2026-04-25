@@ -22,7 +22,7 @@ spring:
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: true
-        spring.json.type.mapping: "tx_token:com.payment.authorization.dto.TransactionEvent, auth_token:com.payment.authorization.dto.AuthorizationResult"
+        spring.json.type.mapping: "fraud_token:com.payment.authorization.dto.FraudScore, rule_token:com.payment.authorization.dto.RulesResult, tx_token:com.payment.authorization.dto.TransactionEvent, auth_token:com.payment.authorization.dto.AuthorizationResult"
 
   cassandra:
     keyspace-name: payment
@@ -30,3 +30,5 @@ spring:
     port: 9042
     local-datacenter: datacenter1
     schema-action: none
+account-service:
+  url: http://localhost:8081

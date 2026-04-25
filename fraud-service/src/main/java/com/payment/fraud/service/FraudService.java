@@ -89,6 +89,7 @@ public class FraudService {
 
         log.info("Transaction {} fraud score: {} signals: {}",
                 event.getTransactionId(), score, signals);
+        storeFraudScoreHistory(fraudScore);
 
         fraudScoreProducer.publishScore(fraudScore);
     }
@@ -103,5 +104,20 @@ public class FraudService {
         }
 
         return count.intValue();
+    }
+    
+    private void storeFraudScoreHistory(FraudScore fraudScore) {
+        String key = "fraud:history:" + fraudScore.getCardNumber();
+        String value = fraudScore.getTransactionId() + ":"
+                + fraudScore.getScore() + ":"
+                + LocalDateTime.now();
+
+        redisTemplate.opsForList().leftPush(key, value);
+        redisTemplate.expire(key, 24, TimeUnit.HOURS);
+
+        log.info("Stored fraud score history for card ending in {} score={}",
+                fraudScore.getCardNumber().substring(
+                        fraudScore.getCardNumber().length() - 4),
+                fraudScore.getScore());
     }
 }

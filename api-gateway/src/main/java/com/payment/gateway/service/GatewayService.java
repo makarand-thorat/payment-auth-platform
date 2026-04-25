@@ -53,7 +53,7 @@ public class GatewayService {
 	        );
 	    }
 
-	    accountServiceClient.debitAccount(request.getCardNumber(), request.getAmountInCents());
+	    
 
 	    TransactionEvent event = new TransactionEvent(
 	            transactionId,
@@ -75,8 +75,8 @@ public class GatewayService {
 	            transactionId,
 	            request.getCardNumber(),
 	            request.getAmountInCents(),
-	            "APPROVED",
-	            "Transaction approved"
+	            "PENDING",
+	            "Transaction recieved and pending processing"
 	    );
 	}
 	
