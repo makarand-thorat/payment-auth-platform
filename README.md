@@ -15,10 +15,14 @@ API Gateway (port 8080)
   └-----> Kafka (transaction.submitted)
                 |
                 v
-        Authorization Service (port 8082)
-                |
-                v
-        Kafka (transaction.result)
+                Rules Engine (rules.result)---|
+                Fraud Service (fraud.result)--|
+                                              v
+        					  Authorization Service (port 8082)
+                							|
+                							v
+        								APPROVED → debit account → Cassandra
+                                        DECLINED → no debit → Cassandra
 ```
 
 ## Services
@@ -28,6 +32,8 @@ API Gateway (port 8080)
 | api-gateway | 8080 | Entry point — validates requests, checks account, debits balance, publishes Kafka events |
 | account-service | 8081 | Manages account data, balances, and spending limits |
 | authorization-service | 8082 | Consumes transaction events, makes authorization decisions |
+| rules-engine (Kafka consumer) | 8083 | Evaluates business rules for transactions |
+| fraud-service (Kafka consumer) | 8084 | Detects potential fraud based on transaction patterns |
 
 ## Tech Stack
 
