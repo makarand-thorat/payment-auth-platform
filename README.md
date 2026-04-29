@@ -43,6 +43,8 @@ API Gateway (port 8080)
 | Framework | Spring Boot 4.0.5 |
 | Messaging | Apache Kafka |
 | Database | PostgreSQL 16 |
+| Audit Storage | Apache Cassandra 4.1 |
+| Cache / Data Grid | Redis 7.2 |
 | ORM | Hibernate / Spring Data JPA |
 | DB Migrations | Flyway |
 | Containerization | Docker |
@@ -67,12 +69,16 @@ This starts:
 - PostgreSQL on port 5432
 - Zookeeper on port 2181
 - Kafka on port 9092
+- Redis on port 6379
+- Cassandra on port 9042
 
 ### Step 2 — Start services in order
 
 1. `account-service` — port 8081
 2. `api-gateway` — port 8080
-3. `authorization-service` — port 8082
+3. `rules-engine` — port 8083
+4. `fraud-service` — port 8084
+5. `authorization-service` — port 8082
 
 Run each via Eclipse: right click → Run As → Spring Boot App
 
@@ -120,6 +126,8 @@ GET http://localhost:8081/accounts/{cardNumber}
 GET http://localhost:8080/health
 GET http://localhost:8081/health
 GET http://localhost:8082/health
+GET http://localhost:8083/health
+GET http://localhost:8084/health
 
 ## Test Accounts
 
@@ -134,14 +142,38 @@ GET http://localhost:8082/health
 ## Transaction Flow
 
 Client sends POST /authorize to API Gateway
-Gateway validates the request
+Gateway validates the request (card number, amount, merchant)
 Gateway calls Account Service to verify account exists and is active
 Gateway checks sufficient balance
-If approved — Gateway debits the account
-Gateway publishes TransactionEvent to Kafka (transaction.submitted topic)
-Authorization Service consumes the event
-Authorization Service publishes AuthorizationResult to Kafka (transaction.result topic)
+If account is blocked or balance insufficient — Gateway returns DECLINED immediately
+Otherwise — Gateway publishes TransactionEvent to Kafka and returns PENDING
+Rules Engine consumes event — evaluates daily limit, blocked categories,
+amount ceiling, velocity — publishes RulesResult to rules.result topic
+Fraud Service consumes event — tracks velocity in Redis, scores risk signals
+— publishes FraudScore to fraud.score topic
+Authorization Service collects both signals
+If rules failed OR fraud score >= 70 — DECLINED, no debit
+If all clear — APPROVED, Account Service debited, audit saved to Cassandra
 
+## Business Rules
+
+| Rule | Threshold | Configurable |
+|---|---|---|
+| Daily limit | Amount > account daily limit | Yes |
+| Blocked category | GAMBLING, ADULT, CRYPTO | Yes |
+| Amount ceiling | Single transaction > 500000 cents | Yes |
+| Velocity | 3+ different merchants in 10 minutes | Yes |
+
+## Fraud Signals
+
+| Signal | Score Added |
+|---|---|
+| High velocity (5+ transactions in 60 seconds) | +40 |
+| Unusual hour (midnight to 6am) | +20 |
+| High amount (> 100000 cents) | +25 |
+| Low remaining balance (< 10000 cents) | +15 |
+
+Fraud score >= 70 results in DECLINED.
 
 ## Project Structure
 ```
@@ -164,25 +196,48 @@ payment-auth-platform/
 │       └── exception/
 ├── authorization-service/
 │   └── src/main/java/com/payment/authorization/
+│       ├── aggregation/
+│       ├── client/
+│       ├── controller/
 │       ├── kafka/
+│       ├── model/
+│       ├── repository/
 │       ├── service/
 │       ├── dto/
 │       └── config/
+├── rules-engine/
+│   └── src/main/java/com/payment/rules/
+│       ├── client/
+│       ├── controller/
+│       ├── kafka/
+│       ├── service/
+│       └── dto/
+├── fraud-service/
+│   └── src/main/java/com/payment/fraud/
+│       ├── controller/
+│       ├── kafka/
+│       ├── service/
+│       └── dto/
 ├── docs/
-│   └── ADR-001-why-kafka.md
+│   ├── ADR-001-why-kafka.md
+│   ├── ADR-002-microservices-decision.md
+│   └── ADR-003-cassandra-for-audit.md
 └── docker-compose.yml
+
 ```
 
 ## Architecture Decisions
 
-See the [docs/](docs/) folder for Architecture Decision Records (ADRs) explaining key design choices.
-## Upcoming Features (Days 8–30)
+See the [docs/](docs/) folder for Architecture Decision Records explaining key design choices:
 
-- Rules Engine with configurable business rules
-- Fraud Detection Service with Redis velocity tracking
-- gRPC communication between services
-- Cassandra audit log
-- Kubernetes deployment
+- ADR-001 — Why Kafka for inter-service communication
+- ADR-002 — Why microservices over monolith
+- ADR-003 — Why Cassandra for audit log
+
+## Upcoming (Days 15-30)
+
+- Docker containerization of all services
+- Kubernetes deployment on GKE
 - GitHub Actions CI/CD pipeline
 - Gatling load testing
 - Prometheus and Grafana monitoring
